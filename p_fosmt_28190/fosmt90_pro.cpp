@@ -244,8 +244,17 @@ bool set_model_format(CString deal_flag, CModel& model, CDbConnection* conn)
 		case DB_KIND_MSSQL:				// MS SQL Server数据库
 		case DB_KIND_ORACLE:	        // Oracle 数据库
 		default:
+// DM8 适配 CHANGE-334:查询。DAYS() 天数差改用 DATEDIFF。
+// 改写原因：DAYS() 天数差改用 DATEDIFF(DAY,起点,终点)；依据 DM 官方文档,DM8 尚未实测。
+// 本共用分支面向 DM8,其他 DB_KIND 标签也会执行此 SQL;参数、结果列、条件与排序保持不变。
+// 原 SQL（完整保留）：
+			// sqlstr = 
+				// " SELECT DAYS(TO_DATE(@BREAKDN_DATE,'YYYYMMDD')) - DAYS(TO_DATE(MAX(BREAKDN_DATE),'YYYYMMDD'))"
+				// " FROM TFOSMT02A"
+				// " WHERE DEP_NAME = @DEP_NAME";
+// DM8 SQL：
 			sqlstr = 
-				" SELECT DAYS(TO_DATE(@BREAKDN_DATE,'YYYYMMDD')) - DAYS(TO_DATE(MAX(BREAKDN_DATE),'YYYYMMDD'))"
+				" SELECT DATEDIFF(DAY, TO_DATE(MAX(BREAKDN_DATE),'YYYYMMDD'), TO_DATE(@BREAKDN_DATE,'YYYYMMDD'))"
 				" FROM TFOSMT02A"
 				" WHERE DEP_NAME = @DEP_NAME";
 			break;
